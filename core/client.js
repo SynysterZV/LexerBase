@@ -13,16 +13,32 @@ module.exports = class extends Client {
         })
         this.config = config
         this.token = config.keyring.discord
+        delete this.config.keyring.discord
         this.commands = new Collection()
-        const dirs = {
-            commands: path.join(__dirname,'..', 'commands'),
-            events: path.join(__dirname, '..', 'events')
-        }
+        const dirs = config.dirs
 
-        this.load = () => {
+        this.load = (p) => {
+        if(p) {
+            const module = require(p)
+            const command = this.commands.get(module.name)
+            command.set('module', module)
+            return delete require.cache[require.resolve(p)]
+        }
         fs.readdir(dirs.commands, { withFileTypes: true }, (err, files) => {
             if(err) throw err
             const folders = files.filter(f=> f.isDirectory())
+            if(!folders) {
+                const jsfiles = files.filter(f => f.name.endsWith('.js'))
+                jsfiles.forEach(file => {
+                    const pathTo = path.join(dirs.commands, file.name)
+                    const module = require(pathTo)
+                    this.commands.set(module.name, new Collection())
+                    const mod = this.commands.get(module.name)
+                    mod.set('fullPath', pathTo)
+                    mod.set('module', module)
+                    delete require.cache[require.resolve(pathTo)]
+                })
+            }
             folders.forEach(folder => {
                 fs.readdir(path.join(dirs.commands, folder.name), (err, files) => {
                     if(err) throw err
@@ -55,9 +71,10 @@ module.exports = class extends Client {
             })
         }
 
-        this.loadAll = () => {
+        this.init = () => {
             this.load()
             this.loadEvents()
+            this.login()
         }
 
         this.getCommand = (message) => {
@@ -67,7 +84,7 @@ module.exports = class extends Client {
             const mod = command.get('module')
             const modPath = command.get('fullPath')
 
-            return { cmd: mod, path: modPath, args }
+            return { command: { cmd: mod, path: modPath }, args }
         } 
     }
 }

@@ -4,7 +4,7 @@ module.exports = {
     name: 'eval',
     desc: 'Evaluates code!',
     async execute(message, args) {
-        if(message.author.id !== '372516983129767938') return;
+        if(message.author.id !== message.client.config.ownerID) return;
         const code = args.join().replace(/(^`{1,3}|(?<=```)js)|`{1,3}$/g, '').trim()
 
         let evaled = await eval(`(async () => {

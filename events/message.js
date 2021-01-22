@@ -1,10 +1,10 @@
 module.exports = (client, message) => {
     if (message.author.bot) return;
         
-            const { cmd, args } = client.getCommand(message);
+            const { command, args } = client.getCommand(message);
 
             try {
-                cmd.execute(message, args)
+                command.cmd.execute(message, args, command)
             } catch (e) {
                 console.log(e)
             }

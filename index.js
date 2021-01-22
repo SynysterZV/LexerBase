@@ -1,6 +1,7 @@
-const Lex = require('./core/client');
-const client = new Lex(require('./core/config.json'))
-client.loadAll()
-client.login()
+// Config file dir
+const config = require('./config');
 
-// https://cn_lab_1_$.cdr.co/
+const Client = require('./core/client');
+const client = new Client(config)
+
+client.init()
